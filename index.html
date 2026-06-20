@@ -1,69 +1,45 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-<title>Neon Radio Hub</title>
-
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
-
-<meta name="theme-color" content="#00ffff">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Neon Radio Hub</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#00ffff">
 </head>
 <body>
 
 <div id="app">
 
-    <!-- Semicírculo superior -->
     <div id="station-arc">
-
         <div id="prev-left" class="side-station">
             <img id="prev-left-logo">
             <span id="prev-left-name"></span>
         </div>
-
         <div id="prev-center" class="side-station">
             <img id="prev-center-logo">
             <span id="prev-center-name"></span>
         </div>
-
         <div id="prev-right" class="side-station">
             <img id="prev-right-logo">
             <span id="prev-right-name"></span>
         </div>
-
     </div>
 
-    <!-- Estación actual -->
     <div id="radio-card">
-
         <div id="logo-container">
             <img id="station-logo" src="img/RadioOff.png" alt="Station Logo">
         </div>
-
-        <div id="station-name">
-            RADIO OFF
-        </div>
-
+        <div id="station-name">RADIO OFF</div>
     </div>
 
 </div>
 
 <audio id="radio-audio" loop></audio>
-
-<audio
-id="static-sfx"
-src="https://www.soundjay.com/tv-and-radio/static-radio-01.mp3">
-</audio>
-
-<audio
-id="menu-sfx"
-src="img/gta-sa-menu.mp3">
-</audio>
+<audio id="static-sfx" src="https://www.soundjay.com/tv-and-radio/static-radio-01.mp3"></audio>
+<audio id="menu-sfx" src="img/gta-sa-menu.mp3"></audio>
 
 <script src="radio.js"></script>
-
 </body>
 </html>
