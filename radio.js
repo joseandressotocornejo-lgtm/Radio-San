@@ -15,22 +15,12 @@ const stations = [
 ];
 
 let currentIdx = 0;
-
-let isHolding = false;
-let holdTimer = null;
-let intervalTimer = null;
-
-let tapCount = 0;
-let lastTapTime = 0;
-
 let startX = 0;
 let startY = 0;
-let currentDirection = null; // "right", "left", "down"
-let hideTimeout = null;
+let actionTriggered = false; 
 
 const audio = document.getElementById("radio-audio");
 const menuSfx = document.getElementById("menu-sfx");
-
 const stationLogo = document.getElementById("station-logo");
 const stationName = document.getElementById("station-name");
 
@@ -39,14 +29,8 @@ function playMenuSfx() {
     menuSfx.play().catch(() => {});
 }
 
-function getStation(index) {
-    const len = stations.length;
-    return stations[(index + len) % len];
-}
-
 function updateUI(index = currentIdx) {
-    const current = getStation(index);
-
+    const current = stations[index];
     stationLogo.src = current.logo;
     stationName.textContent = current.name;
 
@@ -82,108 +66,61 @@ function applyStation(index) {
     audio.load();
 }
 
-function flashCurrentStation() {
-    clearTimeout(hideTimeout);
-    document.body.classList.add("holding");
-
-    hideTimeout = setTimeout(() => {
-        document.body.classList.remove("holding");
-    }, 1000);
-}
-
 function nextStation() {
     const next = (currentIdx + 1) % stations.length;
     applyStation(next);
-    flashCurrentStation();
 }
 
 function previousStation() {
     const prev = (currentIdx - 1 + stations.length) % stations.length;
     applyStation(prev);
-    flashCurrentStation();
 }
 
 function turnRadioOff() {
     applyStation(0);
-    flashCurrentStation();
 }
 
 function pointerDown(event) {
     const touch = event.touches ? event.touches[0] : event;
     startX = touch.clientX;
     startY = touch.clientY;
-    isHolding = false;
-    currentDirection = null;
-
-    clearTimeout(holdTimer);
-    clearInterval(intervalTimer);
-
-    holdTimer = setTimeout(() => {
-        isHolding = true;
-        document.body.classList.add("holding");
-
-        if (currentDirection === "right") {
-            nextStation();
-            intervalTimer = setInterval(nextStation, 1000);
-        } else if (currentDirection === "left") {
-            previousStation();
-            intervalTimer = setInterval(previousStation, 1000);
-        } else if (currentDirection === "down") {
-            turnRadioOff();
-            intervalTimer = setInterval(turnRadioOff, 1000);
-        }
-    }, 350);
+    actionTriggered = false;
 }
 
 function pointerMove(event) {
+    if (actionTriggered) return;
+
     const touch = event.touches ? event.touches[0] : event;
     const deltaX = touch.clientX - startX;
     const deltaY = touch.clientY - startY;
+    const threshold = 35; // Sensibilidad de arrastre en píxeles
 
-    // Detectar dirección dominante si se mueve más de 20px
-    if (!currentDirection && (Math.abs(deltaX) > 20 || Math.abs(deltaY) > 20)) {
+    if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            currentDirection = deltaX > 0 ? "right" : "left";
+            // Movimiento Horizontal: Cambiar Emisora (Verde)
+            document.body.classList.remove("holding-off");
+            document.body.classList.add("holding-change");
+            
+            if (deltaX > 0) {
+                nextStation();
+            } else {
+                previousStation();
+            }
+            actionTriggered = true;
         } else {
+            // Movimiento Vertical Hacia Abajo: Apagar (Rojo Tirado a Rosa)
             if (deltaY > 0) {
-                currentDirection = "down";
+                document.body.classList.remove("holding-change");
+                document.body.classList.add("holding-off");
+                turnRadioOff();
+                actionTriggered = true;
             }
         }
     }
 }
 
 function pointerUp() {
-    clearTimeout(holdTimer);
-    clearInterval(intervalTimer);
-
-    if (isHolding) {
-        document.body.classList.remove("holding");
-        isHolding = false;
-        tapCount = 0;
-        return;
-    }
-
-    const now = Date.now();
-    const interval = now - lastTapTime;
-
-    if (interval < 300) {
-        tapCount++;
-    } else {
-        tapCount = 1;
-    }
-
-    lastTapTime = now;
-
-    clearTimeout(window.tapTimeout);
-
-    window.tapTimeout = setTimeout(() => {
-        if (tapCount === 2) {
-            nextStation();
-        } else if (tapCount === 3) {
-            previousStation();
-        }
-        tapCount = 0;
-    }, 300);
+    document.body.classList.remove("holding-change", "holding-off");
 }
 
 window.addEventListener("touchstart", pointerDown, { passive: true });
