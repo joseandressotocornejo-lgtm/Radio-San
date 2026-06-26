@@ -49,9 +49,21 @@ body {
     position: relative;
 }
 
-/* ARCO SUPERIOR OCULTO */
-#station-arc {
-    display: none !important;
+/* BOTÓN CONFIGURACIÓN */
+#config-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.2s ease;
+}
+
+#config-toggle:hover {
+    transform: rotate(45deg);
 }
 
 /* TARJETA PRINCIPAL */
@@ -62,8 +74,9 @@ body {
     background: var(--bg-card);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(0, 255, 255, .25);
+    border-color: var(--cyan);
     box-shadow:
-        0 0 18px rgba(0, 255, 255, .25),
+        0 0 18px var(--cyan),
         0 0 45px rgba(0, 255, 255, .12),
         inset 0 0 20px rgba(0, 255, 255, .05);
     display: flex;
@@ -71,17 +84,10 @@ body {
     align-items: center;
     justify-content: center;
     padding: 30px;
-    transition: transform .18s ease, box-shadow .18s ease;
+    transition: transform .1s ease, box-shadow .18s ease;
 }
 
-#radio-card.active {
-    box-shadow:
-        0 0 24px rgba(0, 255, 255, .55),
-        0 0 70px rgba(0, 255, 255, .25);
-    transform: scale(1.03);
-}
-
-/* LOGO CENTRAL */
+/* LOGO CENTRAL Y ANIMACIÓN DISCO */
 #logo-container {
     width: 190px;
     height: 190px;
@@ -95,10 +101,20 @@ body {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+    border-radius: 50%;
     filter:
-        drop-shadow(0 0 10px rgba(0, 255, 255, .65))
+        drop-shadow(0 0 10px var(--cyan))
         drop-shadow(0 0 25px rgba(0, 255, 255, .25));
     transition: transform .2s ease, filter .2s ease;
+}
+
+.rotating {
+    animation: rotateDisk 4s linear infinite;
+}
+
+@keyframes rotateDisk {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* NOMBRE */
@@ -109,11 +125,11 @@ body {
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0, 255, 255, .45);
+    text-shadow: 0 0 10px var(--cyan);
     line-height: 1.4;
 }
 
-/* INSTRUCCIONES GÓTICAS INFERIORES */
+/* INSTRUCCIONES INFERIORES */
 #radio-instructions {
     margin-top: 35px;
     display: flex;
@@ -126,73 +142,115 @@ body {
     text-shadow: 0 0 4px rgba(255, 0, 255, 0.2);
 }
 
-#radio-instructions span {
+/* PANEL OVERLAY CONFIGURACIÓN */
+#config-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.25s ease;
+}
+
+#config-panel.hidden {
+    display: none;
+}
+
+#config-content {
+    background: var(--bg-card);
+    border: 1px solid var(--cyan);
+    box-shadow: 0 0 20px var(--cyan);
+    border-radius: var(--radius);
+    width: 320px;
+    padding: 25px;
+    color: var(--text);
+}
+
+#config-content h2 {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#config-content hr {
+    border: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 15px 0;
+}
+
+.config-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.config-group label {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    text-transform: uppercase;
+}
+
+.config-group input[type="range"], 
+.config-group select {
+    width: 100%;
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 6px;
+    border-radius: 6px;
+    outline: none;
+}
+
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.checkbox-group label {
+    color: var(--text);
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
 }
 
-/* ESTADOS DE NEÓN INTERACTIVOS */
-body.holding-change {
-    background: radial-gradient(
-        circle at center,
-        #0a1f10 0%,
-        #05140a 40%,
-        #020703 100%
-    );
+/* SECCIÓN CRÉDITOS */
+#credits-section h3 {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    color: var(--cyan);
+    margin-bottom: 8px;
 }
 
-body.holding-change #radio-card {
-    border-color: rgba(0, 255, 128, 0.45);
-    box-shadow:
-        0 0 18px rgba(0, 255, 128, 0.35),
-        0 0 60px rgba(0, 255, 128, 0.18);
+#credits-section p {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+    margin-bottom: 4px;
 }
 
-body.holding-change #station-logo {
-    transform: scale(1.05);
-    filter:
-        drop-shadow(0 0 15px rgba(0, 255, 128, 0.75))
-        drop-shadow(0 0 35px rgba(0, 255, 128, 0.35));
-}
+/* ESTADOS DINÁMICOS AL ARRASTRAR */
+body.holding-change #radio-card { border-color: #00ff80; box-shadow: 0 0 18px #00ff80; }
+body.holding-off #radio-card { border-color: #ff0055; box-shadow: 0 0 18px #ff0055; }
 
-body.holding-off {
-    background: radial-gradient(
-        circle at center,
-        #24050f 0%,
-        #140208 40%,
-        #070003 100%
-    );
-}
-
-body.holding-off #radio-card {
-    border-color: rgba(255, 0, 85, 0.45);
-    box-shadow:
-        0 0 18px rgba(255, 0, 85, 0.35),
-        0 0 60px rgba(255, 0, 85, 0.18);
-}
-
-body.holding-off #station-logo {
-    transform: scale(1.05);
-    filter:
-        drop-shadow(0 0 15px rgba(255, 0, 85, 0.75))
-        drop-shadow(0 0 35px rgba(255, 0, 85, 0.35));
-}
-
-/* FLASH CAMBIO RADIO */
-.flash {
-    animation: flashGlow .25s ease;
-}
-
+/* FLASH */
+.flash { animation: flashGlow .25s ease; }
 @keyframes flashGlow {
-    0% { transform: scale(.95); filter: brightness(1.6); }
-    100% { transform: scale(1); filter: brightness(1); }
+    0% { filter: brightness(1.6); }
+    100% { filter: brightness(1); }
 }
 
-/* RESPONSIVE */
 @media(max-width:480px) {
     #radio-card { width: 85vw; min-height: 320px; }
     #logo-container { width: 160px; height: 160px; }
-    #station-name { font-size: 1.1rem; }
-    #radio-instructions { gap: 15px; font-size: 0.95rem; }
+    #config-content { width: 85vw; }
 }
