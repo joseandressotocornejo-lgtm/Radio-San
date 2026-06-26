@@ -1,10 +1,9 @@
 const stations = [
     { name: "Radio Off", logo: "img/RadioOff.png", file: "", duration: 0 },
     
-    // ESTA ES TU NUEVA SUB-CARPETA
     { 
         name: "GTA-Sa", 
-        logo: "img/san.png", // Asigna aquí la carátula de la carpeta
+        logo: "img/san.png", 
         isFolder: true,
         subStations: [
             { name: "Bounce FM", logo: "img/BounceFM.png", file: "https://www.dropbox.com/scl/fi/ca7wu3m85r58rgbv9pd7g/Bounce-FM.ogg?rlkey=v7qw43n1h981dcomxfjpve96v&st=5gx1zfuf&raw=1", duration: 3902 },
@@ -21,7 +20,6 @@ const stations = [
         ]
     },
 
-    // LAS DEMÁS CANCIONES SE QUEDAN EN LA RAÍZ PRINCIPAL
     { name: "Guardians of the Galaxy", logo: "img/Guardians of the Galaxy.png", file: "https://www.dropbox.com/scl/fi/g6uxuktvqu41sa8kv1k6r/Guardians-of-the-Galaxy.ogg?rlkey=wljmxuoa35ulnr62g66ccdvgg&st=ku9pq08h&raw=1", duration: 3217 },
     { name: "Futuro", logo: "img/Radio Futuro.png", file: "https://www.dropbox.com/scl/fi/4h7qq2hzlecu2noj31zw2/Radio-Futuro.ogg?rlkey=fdgp0vasf1jxtuigeb3du9xix&st=mmrukwvk&raw=1", duration: 3599 },
     { name: "FlatOut 2", logo: "img/FlatOut.png", file: "https://www.dropbox.com/scl/fi/1z5nx1yqepss72yzn8155/Flatout2.ogg?rlkey=zyknwgn4a8r0s4kymo2ttx01l&st=duu73zkt&raw=1", duration: 5261 },
@@ -32,15 +30,40 @@ const stations = [
 ];
 
 let currentIdx = 0;
-let subIdx = -1; // -1 significa que estamos en la carpeta raíz, >= 0 significa dentro de la sub-carpeta
+let subIdx = -1; 
 let startX = 0;
 let startY = 0;
 let actionTriggered = false; 
 
+// Elementos del DOM original
 const audio = document.getElementById("radio-audio");
 const menuSfx = document.getElementById("menu-sfx");
 const stationLogo = document.getElementById("station-logo");
 const stationName = document.getElementById("station-name");
+
+// Elementos del DOM de Configuración
+const configToggle = document.getElementById("config-toggle");
+const configPanel = document.getElementById("config-panel");
+const volumeControl = document.getElementById("volume-control");
+const colorControl = document.getElementById("color-control");
+const rhythmControl = document.getElementById("rhythm-control");
+const rotationControl = document.getElementById("rotation-control");
+const radioCard = document.getElementById("radio-card");
+
+// Variables para Analizador de Audio (Ritmo de música)
+let audioCtx = null;
+let analyser = null;
+let source = null;
+let dataArray = null;
+let rhythmEnabled = false;
+
+// Mapeo de colores neón variables CSS
+const colors = {
+    cyan: "#00ffff",
+    magenta: "#ff00ff",
+    green: "#00ff80",
+    yellow: "#ffff00"
+};
 
 function playMenuSfx() {
     menuSfx.currentTime = 0;
@@ -48,12 +71,7 @@ function playMenuSfx() {
 }
 
 function updateUI() {
-    let current;
-    if (subIdx === -1) {
-        current = stations[currentIdx];
-    } else {
-        current = stations[currentIdx].subStations[subIdx];
-    }
+    let current = (subIdx === -1) ? stations[currentIdx] : stations[currentIdx].subStations[subIdx];
 
     stationLogo.src = current.logo;
     stationName.textContent = current.name;
@@ -62,23 +80,21 @@ function updateUI() {
     requestAnimationFrame(() => {
         stationLogo.classList.add("flash");
     });
+
+    // Control del estado de rotación visual
+    manageRotationState();
 }
 
 function applyStation() {
-    let station;
-    if (subIdx === -1) {
-        station = stations[currentIdx];
-    } else {
-        station = stations[currentIdx].subStations[subIdx];
-    }
+    let station = (subIdx === -1) ? stations[currentIdx] : stations[currentIdx].subStations[subIdx];
 
     updateUI();
     playMenuSfx();
     audio.pause();
 
-    // Si es una carpeta o es Radio Off, no reproducir audio
     if (station.isFolder || !station.file) {
         audio.src = "";
+        manageRotationState();
         return;
     }
 
@@ -89,7 +105,10 @@ function applyStation() {
         try {
             audio.currentTime = now % station.duration;
         } catch (err) {}
-        audio.play().catch(() => {});
+        audio.play().then(() => {
+            manageRotationState();
+            setupAudioAnalysis();
+        }).catch(() => {});
     };
 
     audio.load();
@@ -117,17 +136,14 @@ function previousStation() {
 
 function turnRadioOff() {
     if (subIdx !== -1) {
-        // Si está dentro de la carpeta, el deslizamiento hacia abajo te saca de ella
         subIdx = -1;
     } else {
-        // Si ya está afuera, apaga la radio
         currentIdx = 0;
     }
     applyStation();
 }
 
 function checkEnterFolder() {
-    // Si estás parado sobre la carpeta y no has entrado, entrar al primer elemento
     if (subIdx === -1 && stations[currentIdx].isFolder) {
         subIdx = 0;
         applyStation();
@@ -136,7 +152,97 @@ function checkEnterFolder() {
     return false;
 }
 
+// LÓGICA DE EVENTOS DE CONFIGURACIÓN
+configToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    configPanel.classList.toggle("hidden");
+});
+
+// Cerrar panel de configuración al hacer clic fuera del contenido
+configPanel.addEventListener("click", (e) => {
+    if (e.target === configPanel) {
+        configPanel.classList.add("hidden");
+    }
+});
+
+volumeControl.addEventListener("input", (e) => {
+    audio.volume = e.target.value;
+});
+
+colorControl.addEventListener("change", (e) => {
+    const selectedColor = colors[e.target.value];
+    document.documentElement.style.setProperty('--cyan', selectedColor);
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", selectedColor);
+});
+
+rotationControl.addEventListener("change", () => {
+    manageRotationState();
+});
+
+rhythmControl.addEventListener("change", (e) => {
+    rhythmEnabled = e.target.checked;
+    if (rhythmEnabled) {
+        setupAudioAnalysis();
+    } else {
+        radioCard.style.transform = "";
+    }
+});
+
+function manageRotationState() {
+    let isPlaying = !audio.paused && audio.src !== "";
+    if (rotationControl.checked && isPlaying) {
+        stationLogo.classList.add("rotating");
+    } else {
+        stationLogo.classList.remove("rotating");
+    }
+}
+
+// Configuración de la API Web Audio para capturar el ritmo
+function setupAudioAnalysis() {
+    if (!rhythmEnabled || audio.paused || !audio.src) return;
+
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        source = audioCtx.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        analyser.fftSize = 64;
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+    }
+    
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
+    analyzeMusic();
+}
+
+function analyzeMusic() {
+    if (!rhythmEnabled || audio.paused) {
+        radioCard.style.transform = "";
+        return;
+    }
+
+    requestAnimationFrame(analyzeMusic);
+    analyser.getByteFrequencyData(dataArray);
+
+    // Tomamos las frecuencias bajas (graves)
+    let lowFreqSum = 0;
+    for (let i = 0; i < 8; i++) {
+        lowFreqSum += dataArray[i];
+    }
+    let average = lowFreqSum / 8;
+    
+    // Mapeo del volumen físico a escala CSS
+    let scale = 1 + (average / 255) * 0.08; 
+    radioCard.style.transform = `scale(${scale})`;
+}
+
+// GESTIÓN DE EVENTOS DE DESLIZAMIENTO
 function pointerDown(event) {
+    if (event.target.closest('#config-panel') || event.target.closest('#config-toggle')) return;
     const touch = event.touches ? event.touches[0] : event;
     startX = touch.clientX;
     startY = touch.clientY;
@@ -145,6 +251,7 @@ function pointerDown(event) {
 
 function pointerMove(event) {
     if (actionTriggered) return;
+    if (event.target.closest('#config-panel') || event.target.closest('#config-toggle')) return;
 
     const touch = event.touches ? event.touches[0] : event;
     const deltaX = touch.clientX - startX;
@@ -153,7 +260,6 @@ function pointerMove(event) {
 
     if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Movimiento Horizontal: Cambiar Emisora
             document.body.classList.remove("holding-off");
             document.body.classList.add("holding-change");
             
@@ -164,15 +270,12 @@ function pointerMove(event) {
             }
             actionTriggered = true;
         } else {
-            // Movimiento Vertical
             if (deltaY > 0) {
-                // Hacia abajo: Salir de carpeta / Apagar
                 document.body.classList.remove("holding-change");
                 document.body.classList.add("holding-off");
                 turnRadioOff();
                 actionTriggered = true;
             } else if (deltaY < 0) {
-                // Hacia arriba: Intentar abrir la carpeta seleccionada
                 if (checkEnterFolder()) {
                     document.body.classList.add("holding-change");
                     actionTriggered = true;
@@ -194,5 +297,4 @@ window.addEventListener("mousedown", pointerDown);
 window.addEventListener("mousemove", pointerMove);
 window.addEventListener("mouseup", pointerUp);
 
-// Inicializar
 updateUI();
