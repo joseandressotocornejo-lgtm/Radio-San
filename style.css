@@ -49,21 +49,27 @@ body {
     position: relative;
 }
 
-/* BOTÓN CONFIGURACIÓN */
+/* BOTÓN CONFIGURACIÓN INTEGRADO A LA ESTÉTICA */
 #config-toggle {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: transparent;
-    border: none;
-    font-size: 1.6rem;
+    top: 25px;
+    right: 25px;
+    background: var(--bg-card);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'UnifrakturMaguntia', serif;
+    font-size: 0.95rem;
+    padding: 6px 12px;
+    border-radius: 8px;
     cursor: pointer;
     z-index: 10;
-    transition: transform 0.2s ease;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+    transition: all 0.2s ease;
 }
 
 #config-toggle:hover {
-    transform: rotate(45deg);
+    box-shadow: 0 0 14px var(--cyan);
+    transform: scale(1.05);
 }
 
 /* TARJETA PRINCIPAL */
@@ -73,8 +79,7 @@ body {
     border-radius: var(--radius);
     background: var(--bg-card);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 255, 255, .25);
-    border-color: var(--cyan);
+    border: 1px solid var(--cyan);
     box-shadow:
         0 0 18px var(--cyan),
         0 0 45px rgba(0, 255, 255, .12),
@@ -87,7 +92,7 @@ body {
     transition: transform .1s ease, box-shadow .18s ease;
 }
 
-/* LOGO CENTRAL Y ANIMACIÓN DISCO */
+/* LOGO CENTRAL */
 #logo-container {
     width: 190px;
     height: 190px;
@@ -108,8 +113,9 @@ body {
     transition: transform .2s ease, filter .2s ease;
 }
 
+/* ANIMACIÓN DISCO (CON ORIGEN ARREGLADO) */
 .rotating {
-    animation: rotateDisk 4s linear infinite;
+    animation: rotateDisk 5s linear infinite;
 }
 
 @keyframes rotateDisk {
@@ -155,7 +161,6 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 100;
-    transition: opacity 0.25s ease;
 }
 
 #config-panel.hidden {
@@ -173,10 +178,13 @@ body {
 }
 
 #config-content h2 {
-    font-size: 1.2rem;
+    font-family: 'UnifrakturMaguntia', serif;
+    font-size: 1.4rem;
     letter-spacing: 2px;
     text-align: center;
     margin-bottom: 10px;
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan);
 }
 
 #config-content hr {
@@ -197,15 +205,16 @@ body {
     font-size: 0.85rem;
     color: var(--text-soft);
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .config-group input[type="range"], 
 .config-group select {
     width: 100%;
-    background: #141414;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #0d0d0d;
+    border: 1px solid rgba(0, 255, 255, 0.2);
     color: #fff;
-    padding: 6px;
+    padding: 8px;
     border-radius: 6px;
     outline: none;
 }
@@ -221,11 +230,13 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    text-transform: none;
 }
 
 /* SECCIÓN CRÉDITOS */
 #credits-section h3 {
-    font-size: 0.9rem;
+    font-family: 'UnifrakturMaguntia', serif;
+    font-size: 1.1rem;
     letter-spacing: 1px;
     color: var(--cyan);
     margin-bottom: 8px;
@@ -234,7 +245,7 @@ body {
 #credits-section p {
     font-size: 0.75rem;
     color: rgba(255,255,255,0.7);
-    line-height: 1.5;
+    line-height: 1.6;
     margin-bottom: 4px;
 }
 
